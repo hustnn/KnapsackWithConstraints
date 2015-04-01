@@ -22,3 +22,11 @@ class Group(object):
     def removeBox(self, box):
         self._boxes.remove(box)
         self._size -= 1
+        
+        
+    def getSize(self):
+        return self._size
+    
+    
+    def getBoxes(self):
+        return self._boxes

@@ -4,7 +4,6 @@ Created on Mar 28, 2015
 @author: hustnn
 '''
 
-from Capacity import Capacity
 
 class Container(object):
     '''
@@ -20,5 +19,5 @@ class Container(object):
         self._leftCapacity = capacity
         
         
-    def getWeights(self):
-        return tuple(self._capacity.getWeights())
+    def getCapacity(self):
+        return self._capacity

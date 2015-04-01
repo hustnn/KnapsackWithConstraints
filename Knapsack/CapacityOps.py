@@ -14,9 +14,9 @@ class CapacityOps(object):
 
     @staticmethod
     def clone(capacity):
-        return Capacity(*(capacity.getWeight()))
+        return Capacity(*(capacity.getWeights()))
     
-    
+    '''
     @staticmethod
     def addTo(l, r):
         if len(l.getWeights()) != len(r.getWeights()):
@@ -38,6 +38,8 @@ class CapacityOps(object):
             for i in range(len(lWeights)):
                 lWeights[i] -= rWeights[i]
                 
+    
+                
                 
     @staticmethod
     def fitIn(tar, des):
@@ -49,4 +51,4 @@ class CapacityOps(object):
             for i in range(len(tarWeights)):
                 if tarWeights[i] > desWeights[i]:
                     return False
-            return True
+            return True'''
