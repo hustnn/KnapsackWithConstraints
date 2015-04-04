@@ -16,7 +16,7 @@ if __name__ == '__main__':
     #print(containerCapacity.getWeights())
     
     container = Container(containerCapacity)
-    
+     
     capacity1 = Capacity(1, 1)
     boxes1 = [Box(1, CapacityOps.clone(capacity1)), Box(2, CapacityOps.clone(capacity1))]
     group1 = Group(1, boxes1)
