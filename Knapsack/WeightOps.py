@@ -36,6 +36,16 @@ class WeightOps(object):
     
     
     @staticmethod
+    def add(l, r):
+        if len(l) != len(r):
+            raise Exception("different length")
+        res = list(l)
+        for i in range(len(l)):
+            res[i] += r[i]
+        return res
+    
+    
+    @staticmethod
     def scaleOfWeight(weights, scale):
         res = []
         for i in weights:

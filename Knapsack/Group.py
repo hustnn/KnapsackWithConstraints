@@ -4,24 +4,28 @@ Created on Mar 27, 2015
 @author: hustnn
 '''
 
+from WeightOps import WeightOps
+
 class Group(object):
     '''
     classdocs
     '''
 
 
-    def __init__(self, groupID, boxes):
+    def __init__(self, groupID, size, weights):
         '''
         Constructor
         '''
         self._groupID = groupID
-        self._size = len(boxes)
-        self._boxes = boxes
+        self._size = size
+        #self._boxes = boxes
+        #self._boxWeights = WeightOps.clone(boxes[0].getWeights())
+        self._weights = weights
         
         
-    def removeBox(self, box):
-        self._boxes.remove(box)
-        self._size -= 1
+    def removeBox(self, size):
+        #self._boxes.remove(box)
+        self._size -= size
         
         
     def getSize(self):
@@ -30,3 +34,11 @@ class Group(object):
     
     def getBoxes(self):
         return self._boxes
+    
+    
+    def getBoxWeights(self):
+        return self._weights
+    
+    
+    def clone(self):
+        return Group(self._groupID, self._size, self._weights)

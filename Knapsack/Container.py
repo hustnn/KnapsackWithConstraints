@@ -21,3 +21,7 @@ class Container(object):
         
     def getCapacity(self):
         return self._capacity
+    
+    
+    def getWeights(self):
+        return self._capacity.getWeights()

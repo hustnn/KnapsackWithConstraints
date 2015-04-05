@@ -6,6 +6,7 @@ Created on Mar 27, 2015
 
 from Capacity import Capacity
 from CapacityOps import CapacityOps
+from WeightOps import WeightOps
 from Container import Container
 from KnapsackOps import KnapsackOps
 from Box import Box
@@ -17,10 +18,17 @@ if __name__ == '__main__':
     
     container = Container(containerCapacity)
      
-    capacity1 = Capacity(1, 1)
-    boxes1 = [Box(1, CapacityOps.clone(capacity1)), Box(2, CapacityOps.clone(capacity1))]
-    group1 = Group(1, boxes1)
+    capacity = Capacity(1, 1)
     
-    groups = [group1]
+    boxes1 = [Box(1, CapacityOps.clone(capacity)), Box(2, CapacityOps.clone(capacity))]
+    group1 = Group(1, 2, WeightOps.clone(capacity.getWeights()))
     
-    KnapsackOps.Pack(container, groups)
+    boxes2 = [Box(1, CapacityOps.clone(capacity)), Box(2, CapacityOps.clone(capacity))]
+    group2 = Group(2, 2, WeightOps.clone(capacity.getWeights()))
+    
+    groups = [group1, group2]
+    
+    #KnapsackOps.Pack(container, groups)
+    
+    KnapsackOps.bruteForcePack(containerCapacity.getWeights(), 1, groups)
+    print(KnapsackOps.packResults)

@@ -5,6 +5,8 @@ Created on Mar 28, 2015
 '''
 
 import numpy
+from itertools import product
+
 from WeightOps import WeightOps
 
 
@@ -12,6 +14,7 @@ class KnapsackOps(object):
     '''
     classdocs
     '''
+    packResults = []
 
     @staticmethod
     def Pack(container, groups):
@@ -42,3 +45,54 @@ class KnapsackOps(object):
         
         res = f[len(groups)][tuple(dimension)]
         print(res)
+        
+    
+    @classmethod
+    def bruteForcePack(cls, containerWeights, numOfContainers, groups):    
+        selectedGroups =  [g for g in groups if g.getSize() > 0]
+        boxesNumList = []
+        for g in selectedGroups:
+            boxesNumList.append(range(g.getSize() + 1))
+            
+        for combination in product(*boxesNumList):
+            if cls.satisfy(containerWeights, selectedGroups, combination):
+                # copy the groups
+                cloneGroups = [g.clone() for g in selectedGroups]
+                for i in range(len(combination)):
+                    cloneGroups[i].removeBox(combination[i])
+                    
+                if cls.allFinished(cloneGroups):
+                    print("finished")
+                    cls.packResults.append(numOfContainers)
+                else:
+                    cls.bruteForcePack(containerWeights, numOfContainers + 1, cloneGroups)
+                    
+                    
+    @staticmethod
+    def allFinished(groups):
+        return len([g for g in groups if g.getSize() > 0]) == 0
+        
+            
+    @staticmethod
+    def satisfy(containerWeights, groups, combination):
+        boxesWeights = [0] * len(groups[0].getBoxWeights())
+        
+        for i in range(len(combination)):
+            num = combination[i]
+            boxWeight = WeightOps.scaleOfWeight(groups[i].getBoxWeights(), num) 
+            boxesWeights = WeightOps.add(boxesWeights, boxWeight)
+            
+        if not WeightOps.fitIn(boxesWeights, containerWeights):
+            return False
+        
+        if len([g for g in groups if g.getSize() > 0]) == 0:
+            return True
+        
+        for g in groups:
+            if g.getSize() >= 1:
+                weights = WeightOps.add(boxesWeights, g.getBoxWeights())
+                if not WeightOps.fitIn(weights, containerWeights):
+                    return True
+                
+        return False
+            
