@@ -12,6 +12,7 @@ from WeightOps import WeightOps
 import threading
 import math
 import time
+import multiprocessing
 
 class KnapsackOps(object):
     '''
@@ -51,14 +52,20 @@ class KnapsackOps(object):
         
     
     @classmethod
-    def bruteForcePack(cls, containerWeights, numOfContainers, groups, packResults):    
+    def bruteForcePack(cls, containerWeights, numOfContainers, groups, packResults, minV, maxV):    
         boxesNumList = []
         for g in groups:
             boxesNumList.append(range(g.getSize() + 1))
             
         combinations = []
         for combination in product(*boxesNumList):
-            combinations.append(combination)
+            num = 0
+            for i in combination:
+                if i == 1:
+                    num += 1
+                    
+            if num >= minV and num <= maxV:
+                combinations.append(combination)
             
         for combination in combinations:
             if cls.satisfy(containerWeights, groups, combination):
@@ -71,13 +78,13 @@ class KnapsackOps(object):
                 selectedGroups =  [g for g in cloneGroups if g.getSize() > 0]
                     
                 if cls.allFinished(selectedGroups):
-                    packResults.append(numOfContainers)
+                    packResults.put(numOfContainers)
                 else:
-                    cls.bruteForcePack(containerWeights, numOfContainers + 1, selectedGroups, packResults)
+                    cls.bruteForcePack(containerWeights, numOfContainers + 1, selectedGroups, packResults, min(minV, len(selectedGroups)), maxV)
                   
                   
     @classmethod
-    def multiThreadPack(cls, combinations, packResults, containerWeights, groups):
+    def multiThreadPack(cls, combinations, packResults, containerWeights, groups, minV, maxV):
         #print(combinations)
         #print("begin")
         for combination in combinations:
@@ -89,11 +96,11 @@ class KnapsackOps(object):
                 selectedGroups =  [g for g in cloneGroups if g.getSize() > 0]
                     
                 if cls.allFinished(selectedGroups):
-                    packResults.append(1)
+                    packResults.put(1)
                 else:
-                    cls.bruteForcePack(containerWeights, 2, selectedGroups, packResults)
+                    cls.bruteForcePack(containerWeights, 2, selectedGroups, packResults, min(minV, len(selectedGroups)), maxV)
       
-                    
+    '''               
     @classmethod
     def multiThreadProc(cls, containerWeights, groups):
         boxesNumList = []
@@ -130,6 +137,54 @@ class KnapsackOps(object):
         for t in threadList:
             t.join()
         
+        return res'''
+    
+    
+    @classmethod
+    def multiProcess(cls, containerWeights, groups, numOfProcess, minV, maxV):
+        boxesNumList = []
+        for g in groups:
+            boxesNumList.append(range(g.getSize() + 1))
+            
+        combinations = []
+        for combination in product(*boxesNumList):
+            num = 0
+            for i in combination:
+                if i == 1:
+                    num += 1
+                    
+            if num >= minV and num <= maxV:
+                combinations.append(combination)
+            
+        #print(combinations)
+            
+        res = []
+        processList = []
+        
+        totalLen = len(combinations)
+        processNum = numOfProcess
+        lenPerProc = int(math.ceil(float(totalLen) / processNum))
+        procNum = 0
+        
+        for i in range(processNum):
+            begin = i * lenPerProc
+            end = min(begin + lenPerProc, totalLen)
+            partCombinations = combinations[begin:end]
+            procNum += 1
+            res.append(multiprocessing.Queue())
+            p = multiprocessing.Process(target = cls.multiThreadPack, 
+                                        args = (partCombinations, res[procNum - 1], containerWeights, groups, min(minV, len(groups)), maxV))
+            processList.append(p)
+            if end == totalLen:
+                break    
+        
+        for p in processList:
+            p.start()
+            time.sleep(1)
+            
+        for p in processList:
+            p.join()
+            
         return res
     
     

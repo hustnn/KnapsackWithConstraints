@@ -89,13 +89,15 @@ if __name__ == '__main__':
     #res = calPackRound(1, containerCapacity, 3)
     #print(res)
     
-    '''groupSet = genGroupSet()
+    groupSet = genGroupSet()
     groups = genGroupsByScale(1, groupSet, 3)
-    res = KnapsackOps.multiThreadProc(containerCapacity.getWeights(), groups)
+    #res = KnapsackOps.multiThreadProc(containerCapacity.getWeights(), groups)
+    res = KnapsackOps.multiProcess(containerCapacity.getWeights(), groups, 32, min(2, len(groups)), 4)
     finalResult = []
-    for l in res:
-        finalResult += l
+    for q in res:
+        while not q.empty():
+            finalResult.append(q.get())
         
-    print(list(set(finalResult)))'''
+    print(list(set(finalResult)))
     
-    KnapsackOps.threadTest()
+    #KnapsackOps.threadTest()
