@@ -9,6 +9,9 @@ from itertools import product
 
 from WeightOps import WeightOps
 
+import threading
+import math
+import time
 
 class KnapsackOps(object):
     '''
@@ -48,29 +51,112 @@ class KnapsackOps(object):
         
     
     @classmethod
-    def bruteForcePack(cls, containerWeights, numOfContainers, groups):    
-        selectedGroups =  [g for g in groups if g.getSize() > 0]
+    def bruteForcePack(cls, containerWeights, numOfContainers, groups, packResults):    
         boxesNumList = []
-        for g in selectedGroups:
+        for g in groups:
             boxesNumList.append(range(g.getSize() + 1))
             
+        combinations = []
         for combination in product(*boxesNumList):
-            if cls.satisfy(containerWeights, selectedGroups, combination):
+            combinations.append(combination)
+            
+        for combination in combinations:
+            if cls.satisfy(containerWeights, groups, combination):
+                #print(combination)
                 # copy the groups
-                cloneGroups = [g.clone() for g in selectedGroups]
+                cloneGroups = [g.clone() for g in groups]
                 for i in range(len(combination)):
                     cloneGroups[i].removeBox(combination[i])
                     
-                if cls.allFinished(cloneGroups):
-                    print("finished")
-                    cls.packResults.append(numOfContainers)
-                else:
-                    cls.bruteForcePack(containerWeights, numOfContainers + 1, cloneGroups)
+                selectedGroups =  [g for g in cloneGroups if g.getSize() > 0]
                     
+                if cls.allFinished(selectedGroups):
+                    packResults.append(numOfContainers)
+                else:
+                    cls.bruteForcePack(containerWeights, numOfContainers + 1, selectedGroups, packResults)
+                  
+                  
+    @classmethod
+    def multiThreadPack(cls, combinations, packResults, containerWeights, groups):
+        #print(combinations)
+        #print("begin")
+        for combination in combinations:
+            if cls.satisfy(containerWeights, groups, combination):
+                cloneGroups = [g.clone() for g in groups]
+                for i in range(len(combination)):
+                    cloneGroups[i].removeBox(combination[i])
+                    
+                selectedGroups =  [g for g in cloneGroups if g.getSize() > 0]
+                    
+                if cls.allFinished(selectedGroups):
+                    packResults.append(1)
+                else:
+                    cls.bruteForcePack(containerWeights, 2, selectedGroups, packResults)
+      
+                    
+    @classmethod
+    def multiThreadProc(cls, containerWeights, groups):
+        boxesNumList = []
+        for g in groups:
+            boxesNumList.append(range(g.getSize() + 1))
+            
+        combinations = []
+        for combination in product(*boxesNumList):
+            combinations.append(combination)
+            
+        res = []
+        threadList = []
+        
+        totalLen = len(combinations)
+        totalThread = 1024
+        lenPerThread = int(math.ceil(float(totalLen) / totalThread))
+        threadNum = 0
+        
+        for i in range(totalThread):
+            begin = i * lenPerThread
+            end = min(begin + lenPerThread, totalLen)
+            partCombinations = combinations[begin:end]
+            threadNum += 1
+            res.append([])
+            t = threading.Thread(target = cls.multiThreadPack, args = (partCombinations, res[threadNum - 1], containerWeights, groups,))
+            threadList.append(t)
+            if end == totalLen:
+                break
+            
+        for t in threadList:
+            t.start()
+            #time.sleep(0.1)
+            
+        for t in threadList:
+            t.join()
+        
+        return res
+    
+    
+    @classmethod
+    def loop(cls, threadName):
+        print(threadName)
+        for i in range(1000000000):
+            pass
+        
+    
+    @classmethod
+    def threadTest(cls):
+        threadList = []
+        for i in range(5):
+            t = threading.Thread(target = cls.loop, args = (str(i),))
+            threadList.append(t)
+            
+        for t in threadList:
+            t.start()
+            
+        for t in threadList:
+            t.join()
+            
                     
     @staticmethod
     def allFinished(groups):
-        return len([g for g in groups if g.getSize() > 0]) == 0
+        return len(groups) == 0
         
             
     @staticmethod
@@ -85,10 +171,14 @@ class KnapsackOps(object):
         if not WeightOps.fitIn(boxesWeights, containerWeights):
             return False
         
-        if len([g for g in groups if g.getSize() > 0]) == 0:
+        cloneGroups = [g.clone() for g in groups]
+        for i in range(len(combination)):
+            cloneGroups[i].removeBox(combination[i])
+        
+        if len([g for g in cloneGroups if g.getSize() > 0]) == 0:
             return True
         
-        for g in groups:
+        for g in cloneGroups:
             if g.getSize() >= 1:
                 weights = WeightOps.add(boxesWeights, g.getBoxWeights())
                 if not WeightOps.fitIn(weights, containerWeights):

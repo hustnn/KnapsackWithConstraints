@@ -40,5 +40,9 @@ class Group(object):
         return self._weights
     
     
+    def getGroupID(self):
+        return self._groupID
+    
+    
     def clone(self):
         return Group(self._groupID, self._size, self._weights)

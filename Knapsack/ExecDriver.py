@@ -11,9 +11,37 @@ from Container import Container
 from KnapsackOps import KnapsackOps
 from Box import Box
 from Group import Group
+import Config
 
-if __name__ == '__main__':
-    containerCapacity = Capacity(2, 2)
+import math
+
+def genGroups():
+    groups = []
+    fileName = Config.WORKLOAD_PATH + Config.GROUP_FILE
+    file = open(fileName, "r")
+    lines = file.readlines()
+    for line in lines:
+        items = line.strip().split(",")
+        group = Group(len(groups) + 1, 1, [int(w) for w in items])
+        groups.append(group)
+    file.close()
+    return groups
+
+
+def genGroupSet():
+    groupSet = []
+    fileName = Config.WORKLOAD_PATH + Config.GROUP_FILE
+    file = open(fileName, "r")
+    lines = file.readlines()
+    for line in lines:
+        items = line.strip().split(",")
+        groupSet.append([int(w) for w in items])
+    file.close()
+    return groupSet
+
+
+def test():
+    containerCapacity = Capacity(12, 12, 12, 12)
     #print(containerCapacity.getWeights())
     
     container = Container(containerCapacity)
@@ -32,3 +60,42 @@ if __name__ == '__main__':
     
     KnapsackOps.bruteForcePack(containerCapacity.getWeights(), 1, groups)
     print(KnapsackOps.packResults)
+    
+    
+def genGroupsByScale(groupSize, groupSet, groupScale):
+    groups = []
+    for i in range(len(groupSet)):
+        begin = i * groupScale + 1
+        end = (i + 1) * groupScale
+        for groupID in range(begin, end + 1):
+            group = Group(groupID, groupSize, groupSet[i])
+            groups.append(group)
+            
+    return groups
+
+    
+def calPackRound(numOfContainer, containerCapacity, groupScale):
+    groupSet = genGroupSet()
+    groups = genGroupsByScale(1, groupSet, groupScale)
+    
+    KnapsackOps.bruteForcePack(containerCapacity.getWeights(), 1, groups)
+    res = list(set(KnapsackOps.packResults))
+    return [int(math.ceil(float(i)) / numOfContainer) for i in res]
+    
+
+if __name__ == '__main__':
+    containerCapacity = Capacity(12, 12, 12, 12)
+    
+    #res = calPackRound(1, containerCapacity, 3)
+    #print(res)
+    
+    '''groupSet = genGroupSet()
+    groups = genGroupsByScale(1, groupSet, 3)
+    res = KnapsackOps.multiThreadProc(containerCapacity.getWeights(), groups)
+    finalResult = []
+    for l in res:
+        finalResult += l
+        
+    print(list(set(finalResult)))'''
+    
+    KnapsackOps.threadTest()
